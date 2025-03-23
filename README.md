@@ -189,7 +189,7 @@ Health check endpoint.
 For visual reference, sample API outputs are available in the project repository:
 
 ![Sample API Response](sample_api_outputs/Screenshot%202025-03-23%20at%2022.24.03.png)
-![Sample API Response](sample_api_outputs/Screenshot 2025-03-23 at 22.23.55.png)
+![Sample API Response](sample_api_outputs/Screenshot%2025-03-23%at%22.23.55.png)
 
 ## Future Improvements
 
