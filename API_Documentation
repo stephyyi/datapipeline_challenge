@@ -1,10 +1,14 @@
-# Data Pipeline API Documentation
+# TechCorner Sales API Documentation
 
 ## Overview
 
-This API provides access to processed TechCorner mobile sales data with support for date-based filtering, demographic filtering, and cursor-based pagination. The data is sourced from the [TechCorner Mobile Purchase and Engagement Data](https://www.kaggle.com/datasets/shohinurpervezshohan/techcorner-mobile-purchase-and-engagement-data) dataset on Kaggle, which has been processed through our data pipeline.
+This API provides access to processed TechCorner mobile sales data with support for date-based filtering and cursor-based pagination. The API is secured with API key authentication and implements rate limiting to ensure fair usage.
 
-The API is secured with API key authentication and implements rate limiting to ensure fair usage.
+## Base URL
+
+```
+http://localhost:8000
+```
 
 ## Authentication
 
@@ -14,81 +18,96 @@ All API requests require an API key to be included in the `X-API-Key` header:
 X-API-Key: your_api_key_here
 ```
 
-To obtain an API key, please contact the administrator.
+For testing purposes, the following API keys are accepted:
+- `test_api_key`
+- `demo_key`
+
+Example:
+```bash
+curl -X GET "http://localhost:8000/data" -H "X-API-Key: test_api_key"
+```
+
+Requests without a valid API key will receive a `401 Unauthorized` response.
 
 ## Rate Limiting
 
 The API implements rate limiting of 100 requests per minute per API key. If you exceed this limit, you will receive a `429 Too Many Requests` response. Please adjust your request rate accordingly.
 
+Rate limits are reset every 60 seconds.
+
 ## Endpoints
 
 ### GET /data
 
-Retrieve processed data with date filtering and cursor-based pagination.
+Retrieve mobile sales data with filtering and cursor-based pagination.
 
 #### Query Parameters
 
 | Parameter  | Type   | Required | Description |
 |------------|--------|----------|-------------|
-| start_date | Date   | No       | Filter data from this date (format: YYYY-MM-DD) |
-| end_date   | Date   | No       | Filter data until this date (format: YYYY-MM-DD) |
-| location   | String | No       | Filter by customer location |
-| gender     | String | No       | Filter by gender (Male/Female) |
+| start_date | String | No       | Filter data from this date (format: YYYY-MM-DD) |
+| end_date   | String | No       | Filter data until this date (format: YYYY-MM-DD) |
+| location   | String | No       | Filter by customer location (e.g., "Rangamati Sadar") |
+| gender     | String | No       | Filter by gender (M or F) |
 | min_age    | Integer| No       | Filter by minimum age |
 | max_age    | Integer| No       | Filter by maximum age |
-| mobile_name| String | No       | Filter by mobile device name |
+| mobile_name| String | No       | Filter by mobile device name (e.g., "iPhone") |
 | cursor     | String | No       | Pagination cursor for retrieving the next set of results |
 | limit      | Integer| No       | Number of records to return (default: 50, max: 100) |
 
-#### Response
+#### Response Format
 
 ```json
 {
   "items": [
     {
-      "id": 1,
-      "customer_id": 10245,
-      "date": "2022-01-15T00:00:00",
-      "customer_location": "New York",
-      "age": 28,
-      "gender": "Male",
-      "mobile_name": "iPhone 13 Pro",
-      "sell_price": 999.99,
-      "from_facebook": "Yes",
+      "customer_id": 1,
+      "date": "2024-05-27 00:00:00.000000",
+      "customer_location": "Rangamati Sadar",
+      "age": 49,
+      "gender": "F",
+      "mobile_name": "Galaxy A55 5G 8/128",
+      "sell_price": 17073.0,
+      "from_facebook": "No",
       "followed_page": "Yes",
       "previous_purchase": "No",
       "heard_of_shop": "Yes",
       "source_file": "TechCorner_Sales_update.csv",
-      "processed_at": "2023-01-15T12:30:45"
+      "processed_at": "2025-03-23 21:55:54.960163",
+      "rowid": 1
     },
     // More items...
   ],
-  "next_cursor": "1001",  // ID to use as cursor for the next page, null if no more results
-  "total_count": 8871     // Total number of records matching the query
+  "next_cursor": "51",  // Cursor for the next page, null if no more results
+  "total_count": 8871   // Total number of records matching the query
 }
 ```
 
 #### Example Requests
 
-**Basic request:**
-```
-GET /data HTTP/1.1
-Host: api.example.com
-X-API-Key: your_api_key_here
+**Basic request (first page of results):**
+```bash
+curl -X GET "http://localhost:8000/data" -H "X-API-Key: test_api_key"
 ```
 
 **With date filtering:**
-```
-GET /data?start_date=2023-01-01&end_date=2023-01-31 HTTP/1.1
-Host: api.example.com
-X-API-Key: your_api_key_here
+```bash
+curl -X GET "http://localhost:8000/data?start_date=2024-05-28&end_date=2024-05-28" -H "X-API-Key: test_api_key"
 ```
 
-**With pagination:**
+**With location filtering:**
+```bash
+curl -X GET "http://localhost:8000/data?location=Rangamati%20Sadar" -H "X-API-Key: test_api_key"
 ```
-GET /data?limit=10&cursor=1001 HTTP/1.1
-Host: api.example.com
-X-API-Key: your_api_key_here
+
+**With multiple filters:**
+```bash
+curl -X GET "http://localhost:8000/data?start_date=2024-05-28&location=Rangamati%20Sadar&gender=F" -H "X-API-Key: test_api_key"
+```
+
+**With pagination (using cursor from previous response):**
+```bash
+curl -X GET "http://localhost:8000/data?cursor=50&limit=25" -H "X-API-Key: test_api_key"
 ```
 
 ### GET /health
@@ -100,8 +119,33 @@ Health check endpoint for monitoring the API status.
 ```json
 {
   "status": "healthy",
-  "timestamp": "2023-01-01T12:00:00"
+  "total_records": 8871,
+  "timestamp": "2025-03-23T21:55:54.960163"
 }
+```
+
+## Pagination
+
+The API uses cursor-based pagination for efficient retrieval of large datasets:
+
+1. Make an initial request without a cursor to get the first page of results
+2. In the response, look for the `next_cursor` field
+3. If `next_cursor` is not null, use its value in the `cursor` parameter of your next request
+4. Repeat until `next_cursor` is null, indicating no more results
+
+Example pagination flow:
+```
+# Get first page
+curl -X GET "http://localhost:8000/data?limit=25" -H "X-API-Key: test_api_key"
+# Response contains next_cursor: "26"
+
+# Get second page
+curl -X GET "http://localhost:8000/data?cursor=26&limit=25" -H "X-API-Key: test_api_key"
+# Response contains next_cursor: "51"
+
+# Get third page
+curl -X GET "http://localhost:8000/data?cursor=51&limit=25" -H "X-API-Key: test_api_key"
+# And so on...
 ```
 
 ## Error Handling
@@ -113,7 +157,6 @@ The API uses standard HTTP status codes to indicate the success or failure of a 
 | 200         | Success     |
 | 400         | Bad Request - Invalid parameters |
 | 401         | Unauthorized - Invalid or missing API key |
-| 404         | Not Found - Resource not found |
 | 429         | Too Many Requests - Rate limit exceeded |
 | 500         | Internal Server Error - Something went wrong on the server |
 
@@ -125,13 +168,32 @@ Error responses include a JSON body with more details:
 }
 ```
 
-## Pagination
+## Data Fields
 
-The API uses cursor-based pagination for efficient retrieval of large datasets:
+The API returns the following fields for each record:
 
-1. Make an initial request without a cursor
-2. In the response, look for the `next_cursor` field
-3. If `next_cursor` is not null, use its value in the `cursor` parameter of your next request
-4. Repeat until `next_cursor` is null, indicating no more results
+| Field              | Type    | Description |
+|--------------------|---------|-------------|
+| customer_id        | Integer | Unique identifier for the customer |
+| date               | String  | Date of the purchase (YYYY-MM-DD) |
+| customer_location  | String  | Location of the customer (e.g., "Rangamati Sadar") |
+| age                | Integer | Age of the customer |
+| gender             | String  | Gender of the customer (M or F) |
+| mobile_name        | String  | Name/model of the mobile device purchased |
+| sell_price         | Float   | Price of the mobile device |
+| from_facebook      | String  | Whether the customer came from Facebook (Yes/No) |
+| followed_page      | String  | Whether the customer follows the shop's page (Yes/No) |
+| previous_purchase  | String  | Whether the customer made previous purchases (Yes/No) |
+| heard_of_shop      | String  | Whether the customer had heard of the shop before (Yes/No) |
+| source_file        | String  | Source data file name |
+| processed_at       | String  | Timestamp when the record was processed |
+| rowid              | Integer | Internal database row identifier (used for pagination) |
 
-This approach is more efficient than offset-based pagination for large datasets and ensures consistency when data is being added concurrently.
+
+Sample API Outputs
+For visual reference, sample API outputs are available in the project repository:
+
+![Sample API Response](sample_api_outputs/Screenshot%202025-03-23%20at%2022.24.03.png)
+![Sample API Response](sample_api_outputs/Screenshot 2025-03-23 at 22.23.55.png)
+
+These screenshots demonstrate the actual JSON responses from the API and can be helpful for understanding the response format and structure. Refer to these examples when building client applications that consume this API.
