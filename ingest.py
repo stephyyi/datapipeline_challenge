@@ -26,7 +26,6 @@ def connect_sftp(host, port, username, password):
 def download_files(sftp, remote_dir, local_dir):
     """Download files from SFTP server to local directory"""
     try:
-        # Create local directory if it doesn't exist
         os.makedirs(local_dir, exist_ok=True)
         
         # List files in remote directory
@@ -46,7 +45,6 @@ def download_files(sftp, remote_dir, local_dir):
         return downloaded_files
     except Exception as e:
         logging.error(f"Error downloading files: {str(e)}")
-        # In a real system, you would send alerts here
         return []
 
 
@@ -66,7 +64,7 @@ def ingest_data(config):
             return files
         except Exception as e:
             logging.error(f"Error in data ingestion: {str(e)}")
-            # In a real system, you would send alerts here
+    
             if sftp:
                 sftp.close()
 
@@ -75,7 +73,6 @@ def ingest_data(config):
 
 # For testing
 if __name__ == "__main__":
-    # Example configuration
     config = {
         'host': 'localhost',
         'port': 22,

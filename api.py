@@ -27,7 +27,7 @@ API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME)
 
 # Simple in-memory rate limiting
-# In production, you would use Redis or a similar distributed cache
+# in prod, you would use Redis or a similar distributed cache
 rate_limits = {}
 
 @app.middleware("http")
@@ -69,8 +69,7 @@ async def rate_limit_middleware(request: Request, call_next):
 
 def verify_api_key(api_key: str = Header(..., alias=API_KEY_NAME)):
     """Verify API key"""
-    # In production, you would check against a database
-    # For simplicity, we're using hardcoded keys
+    # for simplicity, we're using hardcoded keys
     valid_keys = ["test_api_key", "demo_key"]
     
     if api_key not in valid_keys:

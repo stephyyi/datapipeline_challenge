@@ -127,8 +127,6 @@ def process_files(file_paths):
 
     if dataframes:
         # Combine all dataframes
-        # Note: In a real-world scenario, you might need more sophisticated
-        # logic to handle different schemas across files
         try:
             combined_df = pd.concat(dataframes, ignore_index=True)
             return combined_df

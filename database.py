@@ -13,7 +13,7 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Database connection string
-# In a real application, this would come from environment variables
+
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///data_pipeline.db')
 
 # Create SQLAlchemy engine
@@ -55,8 +55,6 @@ def initialize_database():
 def store_dataframe(df):
     """Store a pandas DataFrame in the database"""
     try:
-        # This is a simplified approach - in a real application,
-        # you would handle schema evolution and different table structures
         df.to_sql('processed_data', engine, if_exists='replace', index=False)
         logging.info(f"Stored {len(df)} rows in the database")
         return True
