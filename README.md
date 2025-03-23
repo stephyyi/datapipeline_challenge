@@ -184,6 +184,13 @@ Health check endpoint.
 3. **Database**: For simplicity, SQLite is used by default, but it can be replaced with any SQL database.
 4. **Security**: For a production environment, additional security measures would be implemented.
 
+## Sample Ouput
+
+For visual reference, sample API outputs are available in the project repository:
+
+![Sample API Response](sample_api_outputs/Screenshot%202025-03-23%20at%2022.24.03.png)
+![Sample API Response](sample_api_outputs/Screenshot 2025-03-23 at 22.23.55.png)
+
 ## Future Improvements
 
 1. Add support for incremental data loading
