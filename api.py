@@ -13,6 +13,7 @@ from database import get_data, initialize_database
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
@@ -101,29 +102,59 @@ async def read_data(
     - Filter by product (mobile name)
     - Use cursor-based pagination for efficient retrieval of large datasets
     """
-    result = get_data(start_date, end_date, cursor, limit)
-    
-    if result is None:
+    try:
+        logger.info(f"API request received with params: start_date={start_date}, end_date={end_date}, "
+                   f"location={location}, gender={gender}, min_age={min_age}, max_age={max_age}, "
+                   f"mobile_name={mobile_name}, cursor={cursor}, limit={limit}")
+        
+        result = get_data(start_date, end_date, location, gender, min_age, max_age, mobile_name, cursor, limit)
+        
+        if result is None:
+            logger.error("get_data returned None")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to retrieve data"
+            )
+        
+        # Check if we have any items
+        if len(result["items"]) == 0:
+            logger.info("Query returned no items")
+        else:
+            logger.info(f"Successfully retrieved {len(result['items'])} records")
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error in /data endpoint: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail="Failed to retrieve data"
         )
-    
-    return result
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat()
-    }
+    try:
+        # Try to initialize the database to make sure it's accessible
+        initialize_database()
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Health check failed"
+        )
 
 # Initialize the database when the app starts
 @app.on_event("startup")
 async def startup_event():
-    initialize_database()
-    logging.info("API started and database initialized")
+    try:
+        initialize_database()
+        logger.info("API started and database initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize database on startup: {str(e)}")
 
 # For testing
 if __name__ == "__main__":

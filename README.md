@@ -22,8 +22,7 @@ data-pipeline/
 ├── api.py                   # FastAPI implementation
 ├── main.py                  # Main entry point
 └── sample_data/             # Sample data for testing
-    ├── example.csv
-    └── example.json
+    ├── TechCorner_Sales_update.csv
 ```
 
 ## Setup Instructions
@@ -31,7 +30,7 @@ data-pipeline/
 ### 1. Prerequisites
 
 - Python 3.8 or higher
-- Access to an SFTP server (or use the provided mock for testing)
+- Access to an SFTP server (or use direct file processing for testing)
 
 ### 2. Installation
 
@@ -59,24 +58,38 @@ export SFTP_REMOTE_DIR=/data
 export DATABASE_URL=sqlite:///data_pipeline.db
 ```
 
-### 4. Sample Data
+### 4. Download the Dataset
 
-For testing purposes, sample data is provided in the `sample_data` directory. This includes:
-- CSV files with sample tabular data
-- JSON files with sample hierarchical data
+Download the TechCorner dataset from [Kaggle](https://www.kaggle.com/datasets/shohinurpervezshohan/techcorner-mobile-purchase-and-engagement-data) and place the CSV file in your project directory.
 
-### 5. Running the Pipeline
+### 5. Process the Data
 
-Run the pipeline with default settings:
+For testing purposes, you can directly process the CSV file without an SFTP server:
 
-```bash
-python main.py
+```python
+# process_local.py
+from process import process_file
+from database import initialize_database, store_dataframe
+
+# Initialize database
+initialize_database()
+
+# Process file directly (replace with your file path)
+file_path = "./TechCorner_Sales_update.csv"
+processed_data = process_file(file_path)
+
+if processed_data is not None:
+    # Store in database
+    success = store_dataframe(processed_data)
+    print(f"Processed {len(processed_data)} rows from {file_path}")
+else:
+    print("Failed to process file")
 ```
 
-Or specify custom settings:
+Run this script to populate the database:
 
 ```bash
-python main.py --host mysftp.example.com --port 2222 --username myuser --password mypass --remote-dir /incoming --local-dir ./data
+python process_local.py
 ```
 
 ### 6. Running the API Server
@@ -84,10 +97,12 @@ python main.py --host mysftp.example.com --port 2222 --username myuser --passwor
 Start the API server:
 
 ```bash
-uvicorn api:app --reload
+uvicorn api:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The API will be available at http://localhost:8000
+
+You can access the interactive API documentation at http://localhost:8000/docs
 
 ## API Documentation
 
@@ -164,7 +179,7 @@ Health check endpoint.
 ## Assumptions
 
 1. **SFTP Server Configuration**: The project assumes basic SFTP authentication with username/password.
-2. **Data Formats**: The pipeline expects CSV and JSON files with consistent schema.
+2. **Data Source**: This implementation uses the TechCorner_Sales_update.csv dataset from Kaggle (linked above).
 3. **Database**: For simplicity, SQLite is used by default, but it can be replaced with any SQL database.
 4. **Security**: For a production environment, additional security measures would be implemented.
 

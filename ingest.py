@@ -76,7 +76,7 @@ if __name__ == "__main__":
         'host': 'localhost',
         'port': 22,
         'username': 'user',
-        'password': 'password',
+        'password': 'password123',
         'remote_dir': '/data',
         'local_dir': './downloaded_data'
     }
