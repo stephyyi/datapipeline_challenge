@@ -1,6 +1,7 @@
 # Data Pipeline and API Challenge
 
 A simple data pipeline that ingests data from an SFTP server, processes it, and exposes the data through a REST API with filtering and pagination capabilities.
+Code for ingesting data are provided and tested.However for the pipeline to work easily ,I used a sample file from [Kaggle](https://www.kaggle.com/datasets/shohinurpervezshohan/techcorner-mobile-purchase-and-engagement-data) ,proceesed it,saved it to a sqlite db and exposed it through the API.This is all done locally and can be reproduced.I really tried my best with the limited time and resources to come up with something close to the reuirements. :)
 
 ## Overview
 
@@ -74,8 +75,8 @@ from database import initialize_database, store_dataframe
 # Initialize database
 initialize_database()
 
-# Process file directly (replace with your file path)
-file_path = "./TechCorner_Sales_update.csv"
+# Process file directly 
+file_path = "./sample/TechCorner_Sales_update.csv"
 processed_data = process_file(file_path)
 
 if processed_data is not None:
