@@ -21,10 +21,11 @@ engine = create_engine(DATABASE_URL)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
+
 class ProcessedData(Base):
     """SQLAlchemy model for TechCorner sales data"""
     __tablename__ = 'processed_data'
-    
+
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer, nullable=True)
     date = Column(DateTime, nullable=True)
@@ -40,6 +41,7 @@ class ProcessedData(Base):
     source_file = Column(String, nullable=False)
     processed_at = Column(DateTime, default=datetime.now)
 
+
 def initialize_database():
     """Create database tables if they don't exist"""
     try:
@@ -48,6 +50,7 @@ def initialize_database():
     except Exception as e:
         logging.error(f"Error initializing database: {str(e)}")
         raise
+
 
 def store_dataframe(df):
     """Store a pandas DataFrame in the database"""
@@ -61,6 +64,7 @@ def store_dataframe(df):
         logging.error(f"Error storing data in database: {str(e)}")
         return False
 
+
 def get_data(start_date=None, end_date=None, location=None, gender=None, 
            min_age=None, max_age=None, mobile_name=None, cursor=None, limit=50):
     """Retrieve TechCorner sales data with optional filtering and pagination"""
@@ -68,7 +72,7 @@ def get_data(start_date=None, end_date=None, location=None, gender=None,
         logging.info(f"get_data called with params: start_date={start_date}, end_date={end_date}, "
                     f"location={location}, gender={gender}, min_age={min_age}, max_age={max_age}, "
                     f"mobile_name={mobile_name}, cursor={cursor}, limit={limit}")
-        
+
         # Print table columns for debugging
         try:
             from sqlalchemy import inspect
@@ -78,19 +82,19 @@ def get_data(start_date=None, end_date=None, location=None, gender=None,
             logging.info(f"Database table columns: {column_names}")
         except Exception as e:
             logging.error(f"Error getting column names: {str(e)}")
-        
+
         session = Session()
-        
+
         try:
             # Base query
             query = session.query(ProcessedData)
-            
+
             # Apply date filters
             if start_date:
                 query = query.filter(ProcessedData.date >= start_date)
             if end_date:
                 query = query.filter(ProcessedData.date <= end_date)
-                
+
             # Apply customer demographic filters
             if location:
                 query = query.filter(ProcessedData.customer_location.ilike(f"%{location}%"))
@@ -100,29 +104,29 @@ def get_data(start_date=None, end_date=None, location=None, gender=None,
                 query = query.filter(ProcessedData.age >= min_age)
             if max_age is not None:
                 query = query.filter(ProcessedData.age <= max_age)
-                
+
             # Apply product filter
             if mobile_name:
                 query = query.filter(ProcessedData.mobile_name.ilike(f"%{mobile_name}%"))
-            
+
             # Apply cursor-based pagination
             if cursor:
                 query = query.filter(ProcessedData.id > int(cursor))
-            
+
             # Apply ordering and limit
             query = query.order_by(ProcessedData.id)
             query = query.limit(limit + 1)  # +1 to check if there are more results
-            
+
             # Execute query
             results = query.all()
-            
+
             # Check if there are more results
             has_more = len(results) > limit
             data = results[:limit]
-            
+
             # Generate next cursor
             next_cursor = str(data[-1].id) if has_more and data else None
-            
+
             # Convert to dictionaries
             data_dicts = []
             for item in data:
@@ -134,7 +138,7 @@ def get_data(start_date=None, end_date=None, location=None, gender=None,
                         value = value.isoformat()
                     item_dict[column.name] = value
                 data_dicts.append(item_dict)
-            
+
             # Count total matching records
             total_count_query = session.query(ProcessedData)
             if start_date:
@@ -151,9 +155,9 @@ def get_data(start_date=None, end_date=None, location=None, gender=None,
                 total_count_query = total_count_query.filter(ProcessedData.age <= max_age)
             if mobile_name:
                 total_count_query = total_count_query.filter(ProcessedData.mobile_name.ilike(f"%{mobile_name}%"))
-            
+
             total_count = total_count_query.count()
-            
+
             return {
                 "items": data_dicts,
                 "next_cursor": next_cursor,
@@ -168,11 +172,12 @@ def get_data(start_date=None, end_date=None, location=None, gender=None,
         logging.error(f"Error retrieving data from database: {str(e)}")
         return None
 
+
 # For testing
 if __name__ == "__main__":
     # Initialize database
     initialize_database()
-    
+
     # Create sample dataframe
     df = pd.DataFrame({
         'customer_id': [10245, 10246, 10247],
@@ -189,10 +194,10 @@ if __name__ == "__main__":
         'source_file': ['test.csv'] * 3,
         'processed_at': [datetime.now()] * 3
     })
-    
+
     # Store sample data
     store_dataframe(df)
-    
+
     # Retrieve data
     result = get_data()
     print("Retrieved data:", result)

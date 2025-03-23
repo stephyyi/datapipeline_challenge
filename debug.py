@@ -18,12 +18,12 @@ if ('processed_data',) in tables:
     print("\nTable structure:")
     for col in columns:
         print(col)
-    
+
     # Get row count
     cursor.execute("SELECT COUNT(*) FROM processed_data;")
     count = cursor.fetchone()[0]
     print(f"\nTotal rows: {count}")
-    
+
     # Get sample data if rows exist
     if count > 0:
         cursor.execute("SELECT * FROM processed_data LIMIT 5;")

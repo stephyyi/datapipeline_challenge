@@ -8,6 +8,7 @@ import logging
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+
 def connect_sftp(host, port, username, password):
     """Establish connection to SFTP server"""
     try:
@@ -18,8 +19,9 @@ def connect_sftp(host, port, username, password):
         return sftp
     except Exception as e:
         logging.error(f"Failed to connect to SFTP server: {str(e)}")
-        # In a real system, you would send alerts here
+        # we would send alerts here
         return None
+
 
 def download_files(sftp, remote_dir, local_dir):
     """Download files from SFTP server to local directory"""
@@ -47,6 +49,7 @@ def download_files(sftp, remote_dir, local_dir):
         # In a real system, you would send alerts here
         return []
 
+
 def ingest_data(config):
     """Main function to ingest data from SFTP"""
     sftp = connect_sftp(
@@ -55,7 +58,7 @@ def ingest_data(config):
         config['username'],
         config['password']
     )
-    
+
     if sftp:
         try:
             files = download_files(sftp, config['remote_dir'], config['local_dir'])
@@ -66,8 +69,9 @@ def ingest_data(config):
             # In a real system, you would send alerts here
             if sftp:
                 sftp.close()
-    
+
     return []
+
 
 # For testing
 if __name__ == "__main__":
@@ -80,6 +84,6 @@ if __name__ == "__main__":
         'remote_dir': '/data',
         'local_dir': './downloaded_data'
     }
-    
+
     files = ingest_data(config)
     print(f"Downloaded files: {files}")

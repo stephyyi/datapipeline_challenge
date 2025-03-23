@@ -65,6 +65,7 @@ def process_csv(file_path):
         logging.error(f"Error processing CSV file {file_path}: {str(e)}")
         return None
 
+
 def process_json(file_path):
     """Process a JSON file"""
     try:
@@ -103,6 +104,7 @@ def process_json(file_path):
         logging.error(f"Error processing JSON file {file_path}: {str(e)}")
         return None
 
+
 def process_file(file_path):
     """Process a file based on its extension"""
     if file_path.endswith('.csv'):
@@ -113,15 +115,16 @@ def process_file(file_path):
         logging.warning(f"Unsupported file format: {file_path}")
         return None
 
+
 def process_files(file_paths):
     """Process multiple files"""
     dataframes = []
-    
+
     for file_path in file_paths:
         df = process_file(file_path)
         if df is not None:
             dataframes.append(df)
-    
+
     if dataframes:
         # Combine all dataframes
         # Note: In a real-world scenario, you might need more sophisticated
@@ -134,6 +137,7 @@ def process_files(file_paths):
             return None
     
     return None
+
 
 # For testing
 if __name__ == "__main__":
